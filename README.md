@@ -105,6 +105,39 @@ Frontend will open in your browser (typically http://localhost:3000)
 
 5. In the Search section: you can search (by property name, address, doc_type, rent range, etc) or view all properties via /properties endpoints.
 
+## 📸 Screenshots
+
+### 1. Home / Upload Page
+
+Shows the main header and the PDF upload section.
+
+![Home and Upload Page](screenshots/home-upload.png)
+
+---
+
+### 2. PDF Viewer – Lease
+
+Original lease PDF on the left, extracted lease summary on the right with field highlights.
+
+![Lease PDF Viewer](screenshots/lease-viewer.png)
+
+---
+
+### 3. PDF Viewer – Flyer
+
+Original flyer PDF on the left, extracted flyer details (property info, space details, contacts) on the right.
+
+![Flyer PDF Viewer](screenshots/flyer-viewer.png)
+
+---
+
+### 4. Search & Results
+
+Unit search by unit number and rent range with results table and properties list.
+
+![Search and Results](screenshots/search-results.png)
+
+
 ## 🔍 API Endpoints
 
 | Endpoint       | Method | Description                                              |
