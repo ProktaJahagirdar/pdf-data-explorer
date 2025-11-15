@@ -144,7 +144,7 @@ Search by property name or address or rent range with results table and properti
 |----------------|--------|----------------------------------------------------------|
 | `/extract`     | POST   | Upload a PDF → extract + store data                      |
 | `/properties`  | GET    | Get all properties                                       |
-| `/search`      | GET    | Search units with query params (`unit_number`, `min_rent`, `max_rent`) |
+| `/search`      | GET    | Search properties with query params (`property_name`, `address`, `doc_type`, `min_rent`, `max_rent`) |
 
 
 Thank you for reviewing this project!  
