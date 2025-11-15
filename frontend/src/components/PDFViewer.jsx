@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-// Use CDN worker to avoid bundler path issues
+
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PAGE_RENDER_WIDTH = 400;
 
-// ---------- RIGHT PANE: EXTRACTED DATA ----------
+
+// Renders the extracted data in the right pane
 function RenderExtracted({ extracted }) {
     if (!extracted) return null;
 
-    // ----- FLYER -----
+    // Flyer-style document
     if (extracted.doc_type === "flyer") {
         const {
             property_name,
@@ -42,7 +43,7 @@ function RenderExtracted({ extracted }) {
 
         return (
             <div>
-                {/* Always show the core identity info if present */}
+                {/* Basic property info */}
                 {(property_name || address) && (
                     <>
                         <h4>Property Info</h4>
@@ -59,7 +60,7 @@ function RenderExtracted({ extracted }) {
                     </>
                 )}
 
-                {/* Space details only if at least one value exists */}
+                {/* Size details */}
                 {hasSpaceDetails && (
                     <>
                         <h4>Space Details</h4>
@@ -86,7 +87,7 @@ function RenderExtracted({ extracted }) {
                     </>
                 )}
 
-                {/* Economics only if something is present */}
+                {/* Lease economics */}
                 {hasEconomics && (
                     <>
                         <h4>Economics</h4>
@@ -105,7 +106,7 @@ function RenderExtracted({ extracted }) {
                     </>
                 )}
 
-                {/* Property details only if at least one exists */}
+                {/* Other property attributes */}
                 {hasPropertyDetails && (
                     <>
                         <h4>Property Details</h4>
@@ -127,7 +128,7 @@ function RenderExtracted({ extracted }) {
                     </>
                 )}
 
-                {/* Contacts: show only non-null fields, in order Name → Phone → Email */}
+                {/* Contacts, if present */}
                 {Array.isArray(contacts) && contacts.length > 0 && (
                     <>
                         <h4>Contacts</h4>
@@ -156,7 +157,7 @@ function RenderExtracted({ extracted }) {
         );
     }
 
-    // ----- LEASE -----
+    // Lease-style document
     if (extracted.doc_type === "lease") {
         return (
             <div>
@@ -247,7 +248,7 @@ function RenderExtracted({ extracted }) {
         );
     }
 
-    // ----- FALLBACK -----
+    // Fallback when doc_type is unknown
     return (
         <div>
             <h4>Document Summary</h4>
@@ -258,7 +259,7 @@ function RenderExtracted({ extracted }) {
     );
 }
 
-// ---------- MAIN VIEWER ----------
+// Main PDF viewer + extracted data side-by-side
 export default function PDFViewer({ fileUrl, extracted }) {
     const [numPages, setNumPages] = useState(null);
     const [pdfDoc, setPdfDoc] = useState(null);
@@ -311,7 +312,7 @@ export default function PDFViewer({ fileUrl, extracted }) {
 
                     const lower = rawText.toLowerCase();
 
-                    // ----- FLYER HIGHLIGHTS -----
+                    // Highlights for flyer fields
                     if (extracted.doc_type === "flyer") {
                         if (
                             extracted.available_sf &&
@@ -362,7 +363,7 @@ export default function PDFViewer({ fileUrl, extracted }) {
                         }
                     }
 
-                    // ----- LEASE HIGHLIGHTS -----
+                    // Highlights for lease fields
                     if (extracted.doc_type === "lease") {
                         if (extracted.property_name) {
                             const nameSnippet = extracted.property_name.split(",")[0];
@@ -482,7 +483,7 @@ export default function PDFViewer({ fileUrl, extracted }) {
 
     return (
         <div style={{ display: "flex", gap: 20 }}>
-            {/* LEFT: PDF */}
+            {/* Left: original PDF */}
             <div
                 style={{
                     flex: 1,
@@ -532,7 +533,7 @@ export default function PDFViewer({ fileUrl, extracted }) {
                 </Document>
             </div>
 
-            {/* RIGHT: extracted structured data */}
+            {/* Right: extracted fields */}
             <div
                 style={{
                     flex: 1,

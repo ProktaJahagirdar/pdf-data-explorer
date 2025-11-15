@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const db = new Database(path.join(__dirname, "data.db"));
 
-// Create properties & units tables
+// Creating properties & units tables
 db.exec(`
 CREATE TABLE IF NOT EXISTS properties (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,

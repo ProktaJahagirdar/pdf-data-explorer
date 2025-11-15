@@ -6,7 +6,7 @@ export default function SearchBar() {
     const [allProperties, setAllProperties] = useState([]);
     const [allUnits, setAllUnits] = useState([]);
 
-    // Filters
+    // Filter inputs
     const [propertyName, setPropertyName] = useState("");
     const [propertyAddress, setPropertyAddress] = useState("");
     const [docType, setDocType] = useState(""); // "lease" or "flyer"
@@ -32,7 +32,7 @@ export default function SearchBar() {
         })();
     }, []);
 
-    // Map property_id -> list of units
+
     const unitsByProperty = useMemo(() => {
         const map = {};
         allUnits.forEach((u) => {
@@ -44,7 +44,7 @@ export default function SearchBar() {
         return map;
     }, [allUnits]);
 
-    // Attach computedRent to each property
+    // Compute a rent value per property
     const propertiesWithRent = useMemo(() => {
         return allProperties.map((p) => {
             const units = unitsByProperty[p.id] || [];
@@ -70,6 +70,7 @@ export default function SearchBar() {
         });
     }, [allProperties, unitsByProperty]);
 
+    // Applying text, type, and rent filters
     const filteredProperties = useMemo(() => {
         return propertiesWithRent.filter((p) => {
             const name = (p.property_name || "").toLowerCase();

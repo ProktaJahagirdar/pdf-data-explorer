@@ -45,20 +45,23 @@ def parse_lease(text):
         "renewal_notice_days": None,
     }
 
-    # ---- LANDLORD / PROPERTY NAME ----
-    # Handles: "Landlord: ABC Property Holdings, LLC Tenant: Tenant 1 Office"
+
+    # LANDLORD / PROPERTY NAME
+
     m = re.search(r"Landlord:\s*(.+?)(?:\s+Tenant:|$)", text, re.IGNORECASE)
     if m:
         data["property_name"] = m.group(1).strip()
 
-    # ---- TENANT ----
-    # Handles: "Tenant: Tenant 1 Office"
+
+    # TENANT
+    
     m = re.search(r"Tenant:\s*(.+)", text)
     if m:
         data["tenant"] = m.group(1).strip()
 
-    # ---- SUITE + ADDRESS ----
-    # Matches: '... located at Suite 21, 123 Main Street, New York, NY 10001 ("Premises").'
+
+    # SUITE + ADDRESS
+
     m = re.search(
         r"located at Suite\s*([A-Za-z0-9\-]+)\s*,\s*(.+?)\s*\(\"Premises\"\)",
         text,
@@ -66,24 +69,24 @@ def parse_lease(text):
     )
     if m:
         data["suite"] = m.group(1).strip()
-        # Replace newlines with spaces and normalize spaces
         addr = " ".join(m.group(2).split())
         data["address"] = addr
 
-    # Fallback: "Suite: 21"
+    
     if data["suite"] is None:
         m = re.search(r"Suite[:\s]+([A-Za-z0-9\-]+)", text, re.IGNORECASE)
         if m:
             data["suite"] = m.group(1).strip()
 
-    # Fallback: "Address: ..."
+    
     if data["address"] is None:
         m = re.search(r"Address:\s*(.+)", text, re.IGNORECASE)
         if m:
             data["address"] = m.group(1).strip()
 
-    # ---- SQUARE FEET ----
-    # "approximately 5334 rentable square feet"
+
+    # SQUARE FEET
+    
     m = re.search(
         r"approximately\s*([\d,]+)\s*rentable square feet",
         text,
@@ -92,14 +95,15 @@ def parse_lease(text):
     if m:
         data["square_feet"] = clean_number(m.group(1))
 
-    # Fallback: "Square Feet: 5334"
+   
     if data["square_feet"] is None:
         m = re.search(r"Square\s*Feet[:\s]+([\d,]+)", text, re.IGNORECASE)
         if m:
             data["square_feet"] = clean_number(m.group(1))
 
-    # ---- BASE RENT ----
-    # "base monthly rent of 26224 Dollars ($26224)"
+
+    # BASE RENT
+    
     m = re.search(
         r"base monthly rent of\s*\$?([\d,]+)",
         text,
@@ -108,14 +112,14 @@ def parse_lease(text):
     if m:
         data["base_rent"] = clean_number(m.group(1))
 
-    # Fallback: "Base Rent: 26224"
     if data["base_rent"] is None:
         m = re.search(r"Base\s*Rent[:\s]+\$?([\d,]+)", text, re.IGNORECASE)
         if m:
             data["base_rent"] = clean_number(m.group(1))
 
-    # ---- LEASE START & END ----
-    # "lease term shall commence on 2/01/2024 and expire on 1/01/2029"
+
+    # LEASE START & END
+
     m = re.search(
         r"lease term shall commence on\s*([\d/]+)\s*and expire on\s*([\d/]+)",
         text,
@@ -125,7 +129,6 @@ def parse_lease(text):
         data["lease_start"] = m.group(1).strip()
         data["lease_end"] = m.group(2).strip()
 
-    # Fallback: "Lease Start Date: ..."
     if data["lease_start"] is None:
         m = re.search(r"Lease Start(?: Date)?:\s*([\d/]+)", text, re.IGNORECASE)
         if m:
@@ -136,8 +139,9 @@ def parse_lease(text):
         if m:
             data["lease_end"] = m.group(1).strip()
 
-    # ---- USE / UNIT TYPE ----
-    # 1) From: "rentable square feet for Office use, located at Suite ..."
+
+    # USE / UNIT TYPE
+
     m = re.search(
         r"rentable square feet\s*for\s+(.+?)\s+use,",
         text,
@@ -146,7 +150,6 @@ def parse_lease(text):
     if m:
         data["unit_type"] = m.group(1).strip()
 
-    # 2) Fallback: "used exclusively for office purposes."
     if data["unit_type"] is None:
         m = re.search(
             r"used exclusively for\s+(.+?)\.",
@@ -154,10 +157,11 @@ def parse_lease(text):
             re.IGNORECASE,
         )
         if m:
-            data["unit_type"] = m.group(1).strip()  # "office purposes"
+            data["unit_type"] = m.group(1).strip()  
 
-    # ---- ADDITIONAL FEATURES (Section 4) ----
-    # From: "4. Additional Features: - Full-service gross lease - Access ..."
+
+    # ADDITIONAL FEATURES
+
     m = re.search(
         r"4\.\s*Additional Features:(.+?)5\.\s*Rent Escalations",
         text,
@@ -172,8 +176,9 @@ def parse_lease(text):
         ]
         data["additional_features"] = lines
 
-    # ---- RENT ESCALATIONS (Section 5) ----
-    # "5. Rent Escalations: Base Rent shall increase by 3% annually."
+
+    # RENT ESCALATIONS
+    
     m = re.search(
         r"5\.\s*Rent Escalations:(.+?)6\.\s*Security Deposit",
         text,
@@ -189,8 +194,9 @@ def parse_lease(text):
             except ValueError:
                 pass
 
-    # ---- SECURITY DEPOSIT (Section 6) ----
-    # "6. Security Deposit: Tenant shall deposit an amount equal to one month's rent as security."
+
+    # SECURITY DEPOSIT
+   
     m = re.search(
         r"6\.\s*Security Deposit:(.+?)(?:7\.|IN WITNESS)",
         text,
@@ -204,8 +210,9 @@ def parse_lease(text):
         if data["base_rent"] is not None and "one month" in block.lower():
             data["security_deposit_amount"] = data["base_rent"]
 
-    # ---- RENEWAL OPTION (Section 8) ----
-    # "8. Renewal Option: Tenant shall have one option to renew for an additional five (5) year term, subject to 90 days' prior written notice."
+
+    # RENEWAL OPTION
+   
     m = re.search(
         r"8\.\s*Renewal Option:(.+?)(?:IN WITNESS|$)",
         text,
@@ -502,7 +509,7 @@ def parse_flyer(text):
 
         # economics
         "lease_rate_psf": None,
-        "lease_rate_type": None,  # e.g. NNN, FSG
+        "lease_rate_type": None, 
         "nnn_psf": None,
 
         # misc
@@ -517,7 +524,8 @@ def parse_flyer(text):
     lines = [ln.rstrip() for ln in text.split("\n")]
     non_empty = [ln.strip() for ln in lines if ln.strip()]
 
-    # ---------------- PROPERTY NAME + ADDRESS ----------------
+
+    # Property name + address
 
     # Pattern A: "9201 FEDERAL BOULEVARD\nWESTMINSTER, CO 80221"
     m = re.search(
@@ -543,15 +551,16 @@ def parse_flyer(text):
             data["property_name"] = name
             data["address"] = f"{name}, Wilmington, MA"
 
-    # Fallback: first non-empty line as property_name
+   # If still missing, use first non-empty line as the name
     if data["property_name"] is None and non_empty:
         data["property_name"] = non_empty[0]
 
-    # ---------------- SIZE FIELDS ----------------
 
-    # Available SF:
-    #  "±20,107 SF AVAILABLE"
-    #  "2,640 SF RETAIL SPACE FOR LEASE"
+    
+    # Size fields (available SF, building size, site area)
+
+    # Available SF
+
     m = re.search(r"±\s*([\d,]+)\s*SF\s+AVAILABLE", text, re.IGNORECASE)
     if not m:
         m = re.search(
@@ -562,8 +571,8 @@ def parse_flyer(text):
     if m:
         data["available_sf"] = clean_number(m.group(1))
 
-    # Building size:
-    #  "Building Size\n±52,107 SF"
+    # Building size
+
     m = re.search(
         r"Building Size[\s\S]{0,80}?±?\s*([\d,]+)\s*SF",
         text,
@@ -572,7 +581,7 @@ def parse_flyer(text):
     if m:
         data["building_size_sf"] = clean_number(m.group(1))
 
-    # Fallback: if we see a larger SF than available_sf, treat as building size
+    # If building size missing, assume largest SF is total building size
     if data["building_size_sf"] is None:
         m = re.findall(r"±?\s*([\d,]{4,})\s*SF\b", text, re.IGNORECASE)
         nums = [clean_number(x) for x in m if x]
@@ -585,7 +594,7 @@ def parse_flyer(text):
             if data["building_size_sf"] is None and sf_max >= sf_min:
                 data["building_size_sf"] = sf_max
 
-    # Site area: "Site Area\n±18.67 Acres"
+    # Site area
     m = re.search(
         r"Site Area\s*[\r\n]+±?\s*([\d\.]+)\s*Acres?",
         text,
@@ -597,7 +606,7 @@ def parse_flyer(text):
         except ValueError:
             data["site_area_acres"] = m.group(1).strip()
 
-    # Site area SF: "(17,860 SF)"
+    # Site area SF
     m = re.search(
         r"\(\s*([\d,]+)\s*SF\s*\)",
         text,
@@ -606,9 +615,10 @@ def parse_flyer(text):
     if m:
         data["site_area_sf"] = clean_number(m.group(1))
 
-    # ---------------- ECONOMICS ----------------
 
-    # "LEASE RATE: $30.00/SF NNN"
+    # ECONOMICS 
+
+    # LEASE RATE
     m = re.search(
         r"LEASE\s+RATE:\s*\$?([\d,\.]+)\s*/SF\s*([A-Z]+)?",
         text,
@@ -619,7 +629,7 @@ def parse_flyer(text):
         if m.group(2):
             data["lease_rate_type"] = m.group(2).upper()
 
-    # "NNN: $9.00/SF (EST.)"
+    # "NNN
     m = re.search(
         r"\bNNN:\s*\$?([\d,\.]+)\s*/SF",
         text,
@@ -628,9 +638,10 @@ def parse_flyer(text):
     if m:
         data["nnn_psf"] = clean_number(m.group(1))
 
-    # ---------------- YEAR BUILT / ZONING / PARKING ----------------
 
-    # "Built 1984"
+    # YEAR BUILT / ZONING / PARKING 
+
+    # e.g."Built 1984"
     m = re.search(r"\bBuilt\s+(\d{4})", text, re.IGNORECASE)
     if m:
         try:
@@ -638,7 +649,7 @@ def parse_flyer(text):
         except ValueError:
             data["year_built"] = m.group(1).strip()
 
-    # "Zoned C-1 Commercial"
+    # e.g.  "Zoned C-1 Commercial"
     m = re.search(
         r"\bZoned\s+([A-Za-z0-9\- ]+)",
         text,
@@ -647,7 +658,7 @@ def parse_flyer(text):
     if m:
         data["zoning"] = m.group(1).strip()
 
-    # e.g. "119 spaces"
+    # Parking spaces, e.g. "119 spaces"
     m = re.search(
         r"([\d,]+)\s+spaces",
         text,
@@ -659,7 +670,7 @@ def parse_flyer(text):
         except ValueError:
             data["parking_spaces"] = None
 
-    # ---------------- CONTACT DETAILS ----------------
+    # CONTACT DETAILS (name, phone, email)
 
     contacts = []
     email_pattern = re.compile(r"[\w\.\-+]+@[A-Za-z0-9\.\-]+\.[A-Za-z]{2,}")
@@ -685,7 +696,7 @@ def parse_flyer(text):
         except ValueError:
             return cand
 
-        # If we have a second word, try to include it
+        
         if len(words) > 1:
             for j in range(i + 1, len(tokens)):
                 if tokens_lower[j].startswith(words[1].lower()):
@@ -698,7 +709,7 @@ def parse_flyer(text):
             continue
 
         for email in emails:
-            # Prefer phone on / below the email line
+           
             phone = None
             for offset in [0, 1, 2, -1, -2]:
                 j = i + offset
@@ -708,7 +719,7 @@ def parse_flyer(text):
                         phone = m_phone.group(0).strip()
                         break
 
-            # Try to find a name a bit above the email line
+            
             name = None
             for k in range(i - 1, -1, -1):
                 cand = lines[k].strip()
@@ -717,7 +728,7 @@ def parse_flyer(text):
                 if "@" in cand:
                     continue
 
-                # skip obvious labels / titles
+                
                 if re.search(
                     r"(Executive|Vice President|Senior|Associate|Director|CONTACT US)",
                     cand,
@@ -725,7 +736,7 @@ def parse_flyer(text):
                 ):
                     continue
 
-                # skip TI / lease / generic labels with colon
+               
                 if ":" in cand and not re.search(
                     r"[A-Za-z]{2,}\s+[A-Za-z]{2,}", cand
                 ):
@@ -736,27 +747,27 @@ def parse_flyer(text):
                 ):
                     continue
 
-                # skip pure numeric / address / phone-y lines
+               
                 if re.search(r"\d", cand) and not re.search(
                     r"[A-Za-z]{2,}\s+[A-Za-z]{2,}", cand
                 ):
                     continue
 
-                # At this point cand looks like a candidate name line
+                
                 name = cand
                 break
 
-            # Fallback: name may be on same line before email
+   
             if name is None:
                 prefix = line.split(email)[0].strip(" ,;-")
                 if re.search(r"[A-Za-z]{2,}\s+[A-Za-z]{2,}", prefix):
                     name = prefix
 
-            # Refine name from multi-name line using email local part
+            
             if name is not None:
                 name = pick_name_from_line(name, email)
 
-            # Safety: don't use phone itself as name
+    
             if name and phone and name.strip() == phone.strip():
                 name = None
 
@@ -768,14 +779,14 @@ def parse_flyer(text):
                 }
             )
 
-    # de-duplicate contacts by email (keep the one with a phone if possible)
+    
     unique = {}
     for c in contacts:
         key = c["email"]
         if key not in unique:
             unique[key] = c
         else:
-            # prefer a contact that has a phone number
+   
             if unique[key].get("phone") is None and c.get("phone"):
                 unique[key] = c
 
@@ -792,13 +803,13 @@ def extract_data(pdf_path):
             text = page.extract_text() or ""
             full_text += text + "\n"
 
-    # Decide ONLY between lease and flyer.
+    # Decide whether the PDF is a lease or a marketing flyer.
 
-    # 1) LEASE: explicit lease language
+    # Lease: look for explicit lease agreement language
     if re.search(r"\bCOMMERCIAL LEASE AGREEMENT\b|\bLEASE AGREEMENT\b", full_text, re.IGNORECASE):
         structured = parse_lease(full_text)
 
-    # 2) OTHERWISE treat as FLYER (marketing / space-for-lease type)
+    # Otherwise treat it as a flyer (marketing / space-for-lease)
     else:
         structured = parse_flyer(full_text)
 

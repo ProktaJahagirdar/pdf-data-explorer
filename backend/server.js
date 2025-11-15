@@ -16,7 +16,7 @@ app.options("*", cors());
 app.use(express.json());
 app.use(fileUpload());
 
-// POST /extract → upload PDF, run Python, insert into SQLite, return extracted data
+// Upload a PDF, run the Python extractor, save to SQLite, and return data
 app.post("/extract", (req, res) => {
     console.log("Files received:", req.files);
     if (!req.files || !req.files.pdf) {
@@ -26,6 +26,7 @@ app.post("/extract", (req, res) => {
     const pdf = req.files.pdf;
     const savePath = path.join(__dirname, pdf.name);
 
+    // Save uploaded file to disk
     pdf.mv(savePath, (err) => {
         if (err) {
             console.error("File save error:", err);
@@ -36,6 +37,7 @@ app.post("/extract", (req, res) => {
 
         const pythonScript = `python3 python/extract.py "${savePath}"`;
 
+        // Run the Python extractor script
         exec(pythonScript, (error, stdout, stderr) => {
             if (error) {
                 console.error("Python extract error:", error, stdout, stderr);
@@ -55,10 +57,9 @@ app.post("/extract", (req, res) => {
             }
 
             const { structured } = extracted;
-            const docType = structured.doc_type || "lease"; // now only "lease" or "flyer"
+            const docType = structured.doc_type || "lease";
 
             if (docType === "flyer") {
-                // Insert flyer as a property row (no units)
                 const stmt = db.prepare(`
           INSERT INTO properties (
             property_name,
@@ -86,7 +87,7 @@ app.post("/extract", (req, res) => {
                     structured,
                 });
             } else {
-                // Treat everything else as a LEASE-like document
+
                 const propStmt = db.prepare(`
           INSERT INTO properties (property_name, address, doc_type)
           VALUES (?, ?, ?)
@@ -97,7 +98,7 @@ app.post("/extract", (req, res) => {
                     "lease"
                 ).lastInsertRowid;
 
-                // Store one unit row using base_rent as rent_amount (for search/aggregations)
+                // Storing one unit row using base_rent as rent_amount (for search/aggregations)
                 const unitStmt = db.prepare(`
           INSERT INTO units (
             property_id,
@@ -145,7 +146,8 @@ app.get("/units", (req, res) => {
     res.send(rows);
 });
 
-// Optional: search units by unit_number / rent range
+
+// Simple search over units by unit_number and rent range
 app.get("/search", (req, res) => {
     let query = "SELECT * FROM units WHERE 1=1";
     const params = [];
