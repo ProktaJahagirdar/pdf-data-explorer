@@ -131,11 +131,11 @@ Original flyer PDF on the left, extracted flyer details (property info, space de
 
 ---
 
-### 4. Search & Results
+### 4. Search & Visualize Properties
 
-Unit search by unit number and rent range with results table and properties list.
+Search by property name or address or rent range with results table and properties list.
 
-![Search and Results](screenshots/search-results.png)
+![Search and Visualize](screenshots/search-visualize.png)
 
 
 ## 🔍 API Endpoints
