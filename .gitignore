@@ -1,0 +1,12 @@
+# Node modules
+node_modules
+backend/node_modules
+frontend/node_modules
+
+# Build / dist outputs
+build
+dist
+
+# Misc
+.env
+.DS_Store
