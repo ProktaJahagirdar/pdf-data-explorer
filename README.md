@@ -47,43 +47,49 @@ To streamline the manual process of reading many PDF documents, extracting key i
 ```bash
 cd backend
 npm install
+```
 
 ### Run Backend
 
 From the project root:
 
+```
 npm start
-
+```
 By default the backend listens on: http://localhost:5100
 
-###Install Python dependencies
+### Install Python dependencies
 
+```
 cd python
 pip install pdfplumber
 cd ..
+```
 
-###Run Frontend
+### Run Frontend
 
 In a new terminal, from the project root:
 
+```
 cd frontend
 npm install
 npm start
+```
 
 Frontend will open in your browser (typically http://localhost:3000)
 
 ### Usage Flow
 
-- 1. Launch backend & frontend.
+1. Launch backend & frontend.
     - Backend: node server.js (port 5100)
 
     - Frontend: npm start (port 3000)
 
-- 2. On the frontend Upload section: select a lease or Flyer PDF and click Upload & Extract. 
+2. On the frontend Upload section: select a lease or Flyer PDF and click Upload & Extract. 
 
-- 3. The system calls /extract, runs the Python extractor, writes to the DB, and returns extracted structured data.
+3. The system calls /extract, runs the Python extractor, writes to the DB, and returns extracted structured data.
 
-- 4. The UI shows:
+4. The UI shows:
 
     - Left side: the original PDF (rendered with react‑pdf)
 
@@ -91,7 +97,7 @@ Frontend will open in your browser (typically http://localhost:3000)
 
     - Highlights (via overlay) link key fields back to their location in the PDF.
 
-- 5. In the Search section: you can search (by property name, address, doc_type, rent range, etc) or view all properties via /properties endpoints.
+5. In the Search section: you can search (by property name, address, doc_type, rent range, etc) or view all properties via /properties endpoints.
 
 ## 🔍 API Endpoints
 
