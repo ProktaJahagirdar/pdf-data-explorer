@@ -18,22 +18,28 @@ To streamline the manual process of reading many PDF documents, extracting key i
 - **Frontend**: React, react‑pdf, axios  
 - **Other**: JavaScript (ES Modules), HTML, CSS
 
-## 📂 Project Structure  
-- /backend
--   server.js
--  database.js
--    python/
--    extract.py
--    /frontend
--    src/
--    api/
--    api.js
--    components/
--    UploadPDF.jsx
--    PDFViewer.jsx
--    SearchBar.jsx
--    App.js
--    README.md
+## 📂 Project Structure
+
+```text
+.
+├─ backend/
+│  ├─ server.js         # Express server, routes, file upload, APIs
+│  ├─ database.js       # SQLite connection & schema
+│  └─ python/
+│     └─ extract.py     # PDF parsing & data extraction (lease & flyer)
+│
+├─ frontend/
+│  └─ src/
+│     ├─ api/
+│     │  └─ api.js      # Axios helpers (upload, properties, units, search)
+│     ├─ components/
+│     │  ├─ UploadPDF.jsx
+│     │  ├─ PDFViewer.jsx
+│     │  └─ SearchBar.jsx
+│     └─ App.js         # Main React app layout
+│
+└─ README.md            # Project documentation
+```
 
 ## 🚀 Getting Started
 
